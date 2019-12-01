@@ -85,38 +85,52 @@ public class GenerateKeyActivity extends AppCompatActivity {
         Thread task = new Thread() {
             @Override
             public void run() {
-                if (!KeyGenHelper.isKeyGenerated()) {
-                    try {
-                        KeyGenHelper.generateKey(getApplicationContext());
-                        mCheckBox1.setChecked(true);
-                        KeyGenHelper.generatePassphrase(getApplicationContext());
-                        mCheckBox2.setChecked(true);
-                        ApplicationDatabase.getInstance(getApplicationContext());
-                        mCheckBox3.setChecked(true);
-                        mProgressBar.setVisibility(View.INVISIBLE);
-                    } catch (Exception e) {
-                        Log.e("GenerateKeyActivity", e.getMessage());
-                    }
-                } else {
-                    mCheckBox1.setChecked(true);
-                    mCheckBox2.setChecked(true);
-                    mCheckBox3.setChecked(true);
-                    mProgressBar.setVisibility(View.INVISIBLE);
-                }
-                runOnUiThread(new Runnable() {
+                try {
+                    synchronized (this) {
+                        wait(5000);
 
-                    @Override
-                    public void run() {
-                        // update gui
-                        showFAB();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (!KeyGenHelper.isKeyGenerated()) {
+                                    try {
+                                        KeyGenHelper.generateKey(getApplicationContext());
+                                        mCheckBox1.setChecked(true);
+                                        KeyGenHelper.generatePassphrase(getApplicationContext());
+                                        mCheckBox2.setChecked(true);
+                                        ApplicationDatabase.getInstance(getApplicationContext());
+                                        mCheckBox3.setChecked(true);
+                                        mProgressBar.setVisibility(View.INVISIBLE);
+                                    } catch (Exception e) {
+                                        Log.e("GenerateKeyActivity", e.getMessage());
+                                    }
+                                } else {
+                                    mCheckBox1.setChecked(true);
+                                    mCheckBox2.setChecked(true);
+                                    mCheckBox3.setChecked(true);
+                                    mProgressBar.setVisibility(View.INVISIBLE);
+                                }
+                                runOnUiThread(new Runnable() {
+
+                                    @Override
+                                    public void run() {
+                                        // update gui
+                                        showFAB();
+                                    }
+                                });
+                            }
+                        });
                     }
-                });
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
-        };
+        }
+            ;
 
         task.start();
 
-    }
+        }
 
     boolean fabShouldBeShown;
     FloatingActionButton.OnVisibilityChangedListener fabListener = new FloatingActionButton.OnVisibilityChangedListener() {
